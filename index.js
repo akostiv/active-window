@@ -2,10 +2,10 @@ var fs = require('fs');
 var config = getConfig();
 
 /**
- * This callback handle the response request by getActiveWindow function
- * @callback getActiveWindowCallback
- * @param {app: string, window: string} window
- */
+* This callback handle the response request by getActiveWindow function
+* @callback getActiveWindowCallback
+* @param {app: string, window: string} window
+*/
 
 /**
 * Get the active window
@@ -39,7 +39,7 @@ exports.getActiveWindow = function(callback,repeats,interval){
 
   //Obtain error response from script
   ls.stderr.on("data",function(stderr){
-   throw stderr.toString();
+    throw stderr.toString();
   });
 
   ls.stdin.end();
@@ -56,14 +56,17 @@ function reponseTreatment(response){
     response = response.replace(/(WM_CLASS|WM_NAME)(\(\w+\)\s=\s)/g,'').split("\n",2);
     window.app = response[0];
     window.title = response[1];
+    window.pid = null; // to complete
   }else if (process.platform == 'win32'){
-    response = response.replace(/(@{ProcessName=| AppTitle=)/g,'').slice(0,-1).split(';',2);
+    response = response.replace(/(@{ProcessName=| AppTitle=| Id=)/g,'').slice(0,-1).split(';',3);
     window.app = response[0];
     window.title = response[1];
+    window.pid = response[2];
   }else if(process.platform == 'darwin'){
     response = response.split(",");
     window.app = response[0];
     window.title = response[1].replace(/\n$/, "").replace(/^\s/, "");
+    window.pid = null; // to complete
   }
   return window;
 }
@@ -78,18 +81,18 @@ function getConfig(){
   var path = require("path");
 
   switch(process.platform){
-      case 'linux':
-      case 'linux2':
-          config = configs.linux
-          break;
-      case 'win32':
-          config = configs.win32
-          break;
-      case 'darwin':
-          config = configs.mac;
-          break;
-      default:
-          throw "Operating System not supported yet. "+process.platform;
+    case 'linux':
+    case 'linux2':
+    config = configs.linux
+    break;
+    case 'win32':
+    config = configs.win32
+    break;
+    case 'darwin':
+    config = configs.mac;
+    break;
+    default:
+    throw "Operating System not supported yet. "+process.platform;
   }
   //Append directory to script url
   script_url = path.join(__dirname,config.script_url);
