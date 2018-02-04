@@ -6,26 +6,19 @@ Compatible with Linux, Windows 7+, and OSX;
 ## Usage
 
 ```javascript
-var monitor = require('active-window');
+const {ActiveWindowTracker} = require('active-window');
 
-callback = function(window){
-  try {
-    console.log("App: " + window.app);
-    console.log("Title: " + window.title);
-  }catch(err) {
-      console.log(err);
-  } 
-}
-/*Watch the active window 
-  @callback
-  @number of requests; infinity = -1 
-  @interval between requests
-*/
-//monitor.getActiveWindow(callback,-1,1);
+const activeWindowTracker = new ActiveWindowTracker();
 
-//Get the current active window
-monitor.getActiveWindow(callback);
+activeWindowTracker.registerListener(e => {
+  console.log(e);
+})
 
+activeWindowTracker.start();
+
+setTimeout(() => {
+  activeWindowTracker.stop();
+}, 3000);
 
 ```
 ## Tested on
