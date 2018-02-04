@@ -13,37 +13,7 @@ var config = getConfig();
 * @param {integer} [repeats  = 1] - Number of repeats; Use -1 to infinity repeats
 * @param {float}   [interval = 0] - Loop interval in seconds. For milliseconds use fraction (0.1 = 100ms)
 */
-exports.getActiveWindow = function(callback,repeats,interval){
-  const spawn = require('child_process').spawn;
 
-  interval = (interval) ?  interval : 0;
-  repeats = (repeats) ? repeats : 1;
-
-  //Scape negative number of repeats on Windows OS
-  if (process.platform == 'win32' && repeats < 0 ){
-    repeats = '\\-1';
-  }
-
-  parameters  = config.parameters;
-  parameters.push(repeats);
-  parameters.push(process.platform == 'win32' ? (interval * 1000 | 0) : interval);
-
-  //Run shell script
-  const ls  = spawn(config.bin,parameters);
-  ls.stdout.setEncoding('utf8');
-
-  //Obtain successful response from script
-  ls.stdout.on('data', function(stdout){
-    callback(reponseTreatment(stdout.toString()));
-  });
-
-  //Obtain error response from script
-  ls.stderr.on("data",function(stderr){
-    throw stderr.toString();
-  });
-
-  ls.stdin.end();
-}
 
 /**
 * Treat and format the response string and put it into a object
@@ -105,3 +75,68 @@ function getConfig(){
 
   return config;
 }
+
+class ActiveWindowTracker { 
+  constructor() {
+    this.listeners = [];
+    this.currentWindow = {};
+    this._process = null;
+  }
+
+  isRunning() {
+    return this._process !== null;
+  }
+
+  registerListener(listener) {
+    this.listeners.push(listener);
+  }
+
+  start(interval = 1) {
+    if (this.isRunning()) {
+      throw new Error('Tracking has been already started.');
+    }
+
+    const spawn = require('child_process').spawn;
+    const repeats = -1;
+  
+    //Scape negative number of repeats on Windows OS
+    if (process.platform == 'win32' && repeats < 0 ){
+      repeats = '\\-1';
+    }
+  
+    const {parameters}  = config;
+    parameters.push(repeats);
+    parameters.push(process.platform == 'win32' ? (interval * 1000 | 0) : interval);
+  
+    //Run shell script
+    this._process  = spawn(config.bin,parameters);
+    this._process.stdout.setEncoding('utf8');
+  
+    //Obtain successful response from script
+    this._process.stdout.on('data', (stdout) => {
+      const result = reponseTreatment(stdout.toString());
+      if(this.currentWindow.app !== result.app) {
+        this.listeners.forEach(listener => listener(result))
+        this.currentWindow = result;
+      } 
+      
+    });
+  
+    //Obtain error response from script
+    this._process.stderr.on("data",function(stderr){
+      throw stderr.toString();
+    });
+  
+    this._process.stdin.end();
+  }
+
+  stop() {
+    if (!this.isRunning()) {
+      throw new Error('Tracking hasn\'t been started yet');
+    }
+    this._process.kill();
+    this._process = null;
+  }
+}
+
+exports.ActiveWindowTracker = ActiveWindowTracker;
