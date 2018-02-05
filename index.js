@@ -1,3 +1,4 @@
+require('hazardous');
 var fs = require('fs');
 var config = getConfig();
 
