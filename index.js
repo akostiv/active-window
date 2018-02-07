@@ -98,7 +98,7 @@ class ActiveWindowTracker {
     }
 
     const spawn = require('child_process').spawn;
-    const repeats = -1;
+    let repeats = -1;
   
     //Scape negative number of repeats on Windows OS
     if (process.platform == 'win32' && repeats < 0 ){
@@ -107,7 +107,7 @@ class ActiveWindowTracker {
   
     const {parameters}  = config;
     parameters.push(repeats);
-    parameters.push(process.platform == 'win32' ? (interval * 1000 | 0) : interval);
+    parameters.push(interval);
   
     //Run shell script
     this._process  = spawn(config.bin,parameters);
