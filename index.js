@@ -137,6 +137,9 @@ class ActiveWindowTracker {
     }
     this._process.kill();
     this._process = null;
+    this.currentWindow = {};
+    const { parameters }  = config;
+    parameters.splice(-2, 2);
   }
 }
 
