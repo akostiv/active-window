@@ -1,6 +1,5 @@
 require('hazardous');
 var fs = require('fs');
-var config = getConfig();
 
 /**
 * This callback handle the response request by getActiveWindow function
@@ -48,6 +47,7 @@ function reponseTreatment(response){
 */
 function getConfig(){
   //Retrieve configs
+  let config = {};
   var configs = JSON.parse(fs.readFileSync(__dirname+'/configs.json', 'utf8'));
   var path = require("path");
 
@@ -104,7 +104,8 @@ class ActiveWindowTracker {
     if (process.platform == 'win32' && repeats < 0 ){
       repeats = '\\-1';
     }
-  
+
+    const config = getConfig();
     const {parameters}  = config;
     parameters.push(repeats);
     parameters.push(interval);
@@ -137,6 +138,7 @@ class ActiveWindowTracker {
     }
     this._process.kill();
     this._process = null;
+    this.currentWindow = {};
   }
 }
 
