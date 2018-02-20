@@ -23,9 +23,9 @@ var fs = require('fs');
 function reponseTreatment(response){
   window = {};
   if(process.platform == 'linux'){
-    response = response.replace(/(WM_CLASS|WM_NAME)(\(\w+\)\s=\s)/g,'').split("\n",2);
-    window.app = response[0];
-    window.title = response[1];
+    response = response.replace(/(WM_CLASS|WM_NAME)(\(\w+\)\s=\s)/g,'').match(/"[^"]*"/g).map(str => str.slice(1, -1));
+    window.app = response[1] || response[0];
+    window.title = response[2];
     window.pid = null; // to complete
   }else if (process.platform == 'win32'){
     response = response.replace(/(@{ProcessName=| AppTitle=| Id=)/g,'').slice(0,-1).split(';',3);
